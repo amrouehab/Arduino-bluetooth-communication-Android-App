@@ -1,10 +1,10 @@
 package com.example.amr.datareciver;
 
-import java.io.DataInputStream;
+
 import java.io.IOException;
         import java.io.InputStream;
         import java.io.OutputStream;
-import java.util.StringTokenizer;
+
 import java.util.UUID;
         import android.app.Activity;
         import android.bluetooth.BluetoothAdapter;
@@ -15,10 +15,10 @@ import android.graphics.Color;
 import android.os.Bundle;
         import android.os.Handler;
 import android.util.Log;
-import android.view.View;
-        import android.view.View.OnClickListener;
+
         import android.widget.Button;
-        import android.widget.TextView;
+import android.widget.ImageView;
+import android.widget.TextView;
         import android.widget.Toast;
 
 public class Main2Activity extends Activity {
@@ -44,8 +44,7 @@ public class Main2Activity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.a);
 
         //Link the buttons and textViews to respective views
         btnOn = (Button) findViewById(R.id.button);
@@ -64,22 +63,27 @@ public class Main2Activity extends Activity {
                     // msg.arg1 = bytes from connect thread
 
                     try {
-                        //LDRSensor = getLDRReadingFromMessage(readMessage, msg.getWhen());
-                        LDRSensor=readMessage;
-                        if(Double.parseDouble(LDRSensor)>4.5) {
+                       // LDRSensor = getLDRReadingFromMessage(readMessage, msg.getWhen());
+                       LDRSensor=readMessage;
+                        Log.i("Reading",readMessage);
+
+                        if(LDRSensor.charAt(LDRSensor.length()-1)=='L') {
                             btnOn.setBackgroundColor(0xFF947F46);
                             btnOn.setText("LED OFF");
                             btnOn.setTextColor(Color.BLACK);
                         }
                         else {
-                            btnOn.setBackgroundColor(0xFFFF9A47);
-                            btnOn.setText("LED ON");
-                            btnOn.setTextColor(Color.WHITE);
+                            if(LDRSensor.charAt(LDRSensor.length()-1)=='H') {
+                                btnOn.setBackgroundColor(0xFFFF9A47);
+                                btnOn.setText("LED ON");
+                                btnOn.setTextColor(Color.WHITE);
+                            }
                         }
                         //LDRSensor=readMessage;
 
                     } catch (Exception e) {
-                        LDRSensor = "Error";
+                        Log.i("Error",e.getMessage());
+                        //LDRSensor = "Error";
                     }  // extract string
                     //  int dataLength = dataInPrint.length();                          //get length of data received
                     //txtStringLength.setText("String Length = " + dataInPrint);
@@ -89,17 +93,21 @@ public class Main2Activity extends Activity {
                     //String sensor1 = recDataString.substring(6, 10);            //same again...
                     //String sensor2 = recDataString.substring(11, 15);
                     //String sensor3 = recDataString.substring(16, 20);
+try {
+    sensorView1.setText("Temp Reading>>" + LDRSensor.substring(0, 5));
 
-                    sensorView1.setText( "ON/OFF Sensor Reading>>"+LDRSensor );
-
-                    //update the textviews with sensor values
-                    sensorView2.setText(" Humidity Sensor Reading >> SOON");
-                    sensorView3.setText(" Temperature Sensor Reading>> SOON");
-                    //sensorView3.setText(" Sensor 3 Voltage = " + sensor3 + "V");
+    //update the textviews with sensor values
+    sensorView2.setText(" Humidity Sensor Reading >> SOON");
+    sensorView3.setText(" Temperature Sensor Reading>> SOON");
+    //sensorView3.setText(" Sensor 3 Voltage = " + sensor3 + "V");
 
 
-                    // strIncom =" ";
-                    //      // }
+    // strIncom =" ";
+    //      // }
+}catch (Exception e){
+    Log.i("Error",e.getMessage());
+
+}
                 }
             }
 
@@ -109,7 +117,7 @@ public class Main2Activity extends Activity {
         btAdapter = BluetoothAdapter.getDefaultAdapter();       // get Bluetooth adapter
         //checkBTState();
 
-        // Set up onClick listeners for buttons to send 1 or 0 to turn on/off LED
+       /* // Set up onClick listeners for buttons to send 1 or 0 to turn on/off LED
         btnOff.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 mConnectedThread.write("0");    // Send "0" via Bluetooth
@@ -123,10 +131,11 @@ public class Main2Activity extends Activity {
                 Toast.makeText(getBaseContext(), "Turn on LED", Toast.LENGTH_SHORT).show();
             }
         });
+        */
     }
 
     private String getLDRReadingFromMessage(String readMessage, long when) {
-        int firstIndex=-1,lastindex=-1,i=0;
+        int firstIndex=-1,lastindex=-1,i=0; //23.04LL
         String reading="";
         Log.i("IN_BUFFErrrrrrrrrrrR", readMessage);
         while (true) {
@@ -146,7 +155,7 @@ public class Main2Activity extends Activity {
         }
         return reading;
     }
-
+//roo7 7ot el 2rayat kolha men el arduino fe string we seral.print mra wa7da
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
 
         return  device.createRfcommSocketToServiceRecord(BTMODULEUUID);
@@ -234,7 +243,7 @@ public class Main2Activity extends Activity {
             while (true) {
                 try {
                     try {
-                        sleep(140);
+                        sleep(700);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -243,19 +252,19 @@ public class Main2Activity extends Activity {
                     bytes = mmInStream.available();
                     Log.i("IN_BUFFER", "mmInStream-available bytes: " + Integer.toString(bytes)+ " ");
                     if (bytes>0){
-                        for(int i=0; i<30; i++){
+                        for(int i=0; i<7; i++){
                             buffer[i] = 0;}
                         // Read from the InputStream
                         Log.i("IN_BUFFER", "Read Stream into Buffer:");
                         bytes = mmInStream.read(buffer);
 
                         Log.i("IN_BUFFER", "The entire buffer after read stream into buffer: " + Integer.toString(bytes)+ " ");
-                        for(int i=0; i<30; i++)
+                        for(int i=0; i<7; i++)
                             Log.i("IN_BUF_AFTER", buffer[i] + " ");
                         // Send the obtained bytes to the UI Activity
                         Log.i("IN_BUFFER", "We now send to handler.");
                         String readMessage = new String(buffer, 0, bytes);
-                        if(!(bytes<4))bluetoothIn.obtainMessage(handlerState, bytes, -1, readMessage)
+                        bluetoothIn.obtainMessage(handlerState, bytes, -1, readMessage)
                                 .sendToTarget();}
                    // bytes = mmInStream.read(messageByte);            //read bytes from input buffer
 

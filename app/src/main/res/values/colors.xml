@@ -3,5 +3,8 @@
     <color name="colorPrimary">#eeff00</color>
     <color name="colorPrimaryDark">#303f9f</color>
     <color name="colorAccent">#947f46</color>
-    <color name="j">#4859c9</color>
+    <color name="j">#a8b8b5</color>
+    <color name="s">#7d88d2</color>
+    <color name="a">#4859c9</color>
+    <color name="js">#004859c9</color>
 </resources>
