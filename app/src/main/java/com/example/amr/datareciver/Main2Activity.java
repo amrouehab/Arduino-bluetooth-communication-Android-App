@@ -5,6 +5,7 @@ import java.io.IOException;
         import java.io.InputStream;
         import java.io.OutputStream;
 
+import java.util.StringTokenizer;
 import java.util.UUID;
         import android.app.Activity;
         import android.bluetooth.BluetoothAdapter;
@@ -12,19 +13,23 @@ import java.util.UUID;
         import android.bluetooth.BluetoothSocket;
         import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
         import android.os.Handler;
+import android.support.customtabs.CustomTabsIntent;
 import android.util.Log;
 
-        import android.widget.Button;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
         import android.widget.Toast;
 
 public class Main2Activity extends Activity {
 
     Button btnOn, btnOff;
-    TextView txtArduino, txtString, txtStringLength, sensorView0, sensorView1, sensorView2, sensorView3;
+    TextView txtArduino, txtString, txtStringLength, sensorView0, TempC, TempF, Moist;
     Handler bluetoothIn;
 
 
@@ -40,6 +45,11 @@ public class Main2Activity extends Activity {
     // String for MAC address
     private static String address;
     private String LDRSensor="0";
+    private ImageView SunImage;
+    private ImageView powerImage;
+    private ImageView watering;
+    private TextView powerText;
+    private RelativeLayout mainLy;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,55 +61,63 @@ public class Main2Activity extends Activity {
         btnOff = (Button) findViewById(R.id.buttonOff);
         txtString = (TextView) findViewById(R.id.txtString);
         txtStringLength = (TextView) findViewById(R.id.testView1);
-        sensorView1 = (TextView) findViewById(R.id.sensorView1);
-        sensorView2 = (TextView) findViewById(R.id.sensorView2);
-        sensorView3 = (TextView) findViewById(R.id.sensorView3);
+        TempC = (TextView) findViewById(R.id.TempTextC);
+        TempF = (TextView) findViewById(R.id.TempTextF);
+        Moist = (TextView) findViewById(R.id.moist);
+        SunImage=(ImageView)findViewById(R.id.imageView2);
+        powerImage=(ImageView)findViewById(R.id.power);
+        powerText=(TextView)findViewById(R.id.powerText);
+        mainLy=(RelativeLayout)findViewById(R.id.mainLy);
+        watering=(ImageView)findViewById(R.id.imageView3);
 
         bluetoothIn = new Handler() {
             public void handleMessage(android.os.Message msg) {
-                if (msg.what == handlerState) {                                     //if message is what we want
+                boolean circuitIsOFF=false;
+                if (msg.what == handlerState) {                                 //if message is what we want
                     String readMessage = (String) msg.obj;
-                    txtString.setText(readMessage);
                     // msg.arg1 = bytes from connect thread
 
                     try {
                        // LDRSensor = getLDRReadingFromMessage(readMessage, msg.getWhen());
                        LDRSensor=readMessage;
                         Log.i("Reading",readMessage);
+if(LDRSensor.contains("-100")) circuitIsOFF=true;
+    if (LDRSensor.charAt(12) == 'L') {
+        SunImage.setImageResource(R.drawable.sundark);
 
-                        if(LDRSensor.charAt(LDRSensor.length()-1)=='L') {
-                            btnOn.setBackgroundColor(0xFF947F46);
-                            btnOn.setText("LED OFF");
-                            btnOn.setTextColor(Color.BLACK);
-                        }
-                        else {
-                            if(LDRSensor.charAt(LDRSensor.length()-1)=='H') {
-                                btnOn.setBackgroundColor(0xFFFF9A47);
-                                btnOn.setText("LED ON");
-                                btnOn.setTextColor(Color.WHITE);
-                            }
-                        }
-                        //LDRSensor=readMessage;
+    } else {
+        if (LDRSensor.charAt(12) == 'H') {
+            SunImage.setImageResource(R.drawable.sun);
+
+        }
+    }
+    //LDRSensor=readMessage;
+
 
                     } catch (Exception e) {
-                        Log.i("Error",e.getMessage());
-                        //LDRSensor = "Error";
-                    }  // extract string
-                    //  int dataLength = dataInPrint.length();                          //get length of data received
-                    //txtStringLength.setText("String Length = " + dataInPrint);
-
-                    // if (recDataString.charAt(0) == '#')                             //if it starts with # we know it is what we are looking for
-                    //{
-                    //String sensor1 = recDataString.substring(6, 10);            //same again...
-                    //String sensor2 = recDataString.substring(11, 15);
-                    //String sensor3 = recDataString.substring(16, 20);
+                        Log.i("Error", e.getMessage());
+                    }
 try {
-    sensorView1.setText("Temp Reading>>" + LDRSensor.substring(0, 5));
-
-    //update the textviews with sensor values
-    sensorView2.setText(" Humidity Sensor Reading >> SOON");
-    sensorView3.setText(" Temperature Sensor Reading>> SOON");
-    //sensorView3.setText(" Sensor 3 Voltage = " + sensor3 + "V");
+    if(!circuitIsOFF) {
+        TempC.setText(LDRSensor.substring(0, 5));
+        TempF.setText(String.valueOf(Double.parseDouble(LDRSensor.substring(0, 5)) * 1.8 + 32));
+        Moist.setText(LDRSensor.substring(6, 11));
+        powerImage.setImageResource(R.drawable.poweron);
+        powerText.setText("Power is On");
+        mainLy.setBackgroundResource(R.color.s);
+        if(Double.parseDouble(Moist.getText().toString())<40)watering.setVisibility(View.VISIBLE);
+        else watering.setVisibility(View.INVISIBLE);
+    }
+    else {
+        TempC.setText("Off");
+        TempF.setText(String.valueOf("Off"));
+        Moist.setText("Off");
+        powerImage.setImageResource(R.drawable.poweroff);
+        powerText.setText("Power is Off");
+        mainLy.setBackgroundResource(R.color.j);
+        watering.setVisibility(View.INVISIBLE);
+    }
+    //Moist.setText(" Sensor 3 Voltage = " + sensor3 + "V");
 
 
     // strIncom =" ";
@@ -132,6 +150,23 @@ try {
             }
         });
         */
+    }
+public void OpenYoutubeLink(View v){
+    try {
+        String url = "https://www.youtube.com/watch?v=MDub1yycq7U&t=1s";
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        CustomTabsIntent customTabsIntent = builder.build();
+        customTabsIntent.launchUrl(this, Uri.parse(url));
+    }catch (Exception e){
+        Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
+    }
+}
+    private boolean readPushButton() {
+        if(LDRSensor.charAt(LDRSensor.length()-1)=='L')
+        return false;
+        else if(LDRSensor.charAt(LDRSensor.length()-1)=='H')return true;
+        return false;
+
     }
 
     private String getLDRReadingFromMessage(String readMessage, long when) {
@@ -252,14 +287,14 @@ try {
                     bytes = mmInStream.available();
                     Log.i("IN_BUFFER", "mmInStream-available bytes: " + Integer.toString(bytes)+ " ");
                     if (bytes>0){
-                        for(int i=0; i<7; i++){
+                        for(int i=0; i<=13; i++){
                             buffer[i] = 0;}
                         // Read from the InputStream
                         Log.i("IN_BUFFER", "Read Stream into Buffer:");
                         bytes = mmInStream.read(buffer);
 
                         Log.i("IN_BUFFER", "The entire buffer after read stream into buffer: " + Integer.toString(bytes)+ " ");
-                        for(int i=0; i<7; i++)
+                        for(int i=0; i<=13; i++)
                             Log.i("IN_BUF_AFTER", buffer[i] + " ");
                         // Send the obtained bytes to the UI Activity
                         Log.i("IN_BUFFER", "We now send to handler.");
